@@ -1,9 +1,10 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
+#include "ESP8266MessageInterface.h"
  
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "TP-LINK_5FA9";
+const char* password = "janissa01";
 
 const char* SSHTMLSOURCE = "http://api.sunrise-sunset.org/json?lat=49.2827&lng=-123.1207&formatted=0";
 const char* CURRTIMESOURCE = "http://worldclockapi.com/api/json/utc/now";
@@ -29,9 +30,14 @@ enum DataContent {
   currTimeData
 };
 
+ESP8266MsgAPI api;
+timeData_t timeData;
+
 void getHTMLcontents(timeData_t& data, enum DataContent dContent);
 void parseSSJson(timeData_t& data, String& str);
 void parseCurrTimeJson(timeData_t& data, String& str);
+void listenForCommand();
+void sendDataToMSP(cmdType cmd, int* data);
  
 void setup () {
  
@@ -45,43 +51,48 @@ void setup () {
  
   }
 
-  Serial.print("Connected!");
+  Serial.println("Connected!");
  
 }
  
 void loop() {
-  
-  timeData_t timeData;
-  
   getHTMLcontents(timeData, SSdata);
   getHTMLcontents(timeData, currTimeData);
+  listenForCommand();
+}
 
-  Serial.println("Sunset time");
-  Serial.print("Hour: ");
-  Serial.println(timeData.sunset.hour);
-  Serial.print("Minute: ");
-  Serial.println(timeData.sunset.minute);
-  Serial.print("Second: ");
-  Serial.println(timeData.sunset.second);
+void listenForCommand() {
+  cmdType cmd;
+  int data[3];
 
-  Serial.println("Sunrise time");
-  Serial.print("Hour: ");
-  Serial.println(timeData.sunrise.hour);
-  Serial.print("Minute: ");
-  Serial.println(timeData.sunrise.minute);
-  Serial.print("Second: ");
-  Serial.println(timeData.sunrise.second);
+  //do nothing until a packet is ready to be read
+  if (Serial.available() > 8) {
+    api.recvPacket(cmd, data);
+    sendDataToMSP(cmd, data);
+  }
+}
 
-  Serial.println("Current time");
-  Serial.print("Hour: ");
-  Serial.println(timeData.currTime.hour);
-  Serial.print("Minute: ");
-  Serial.println(timeData.currTime.minute);
-  Serial.print("Second: ");
-  Serial.println(timeData.currTime.second);
-  
-  delay(30000);    //Send a request every 30 seconds
- 
+void sendDataToMSP(cmdType cmd, int* data) {
+  switch(cmd) {
+    case getSunsetTime:
+      getHTMLcontents(timeData, SSdata);
+      api.sendPacket(cmd, timeData.sunset.hour, timeData.sunset.minute, timeData.sunset.second);
+      break;
+    case getSunriseTime:
+      getHTMLcontents(timeData, SSdata);
+      api.sendPacket(cmd, timeData.sunrise.hour, timeData.sunrise.minute, timeData.sunrise.second);
+      break;
+    case getCurrentTime:
+      getHTMLcontents(timeData, currTimeData);
+      api.sendPacket(cmd, timeData.currTime.hour, timeData.currTime.minute, timeData.currTime.second);
+      break;
+    case 43: //echo test if received and transmitted packet is the same
+      api.sendPacket(cmd, data[0], data[1], data[2]);
+      break;  
+    default:
+      Serial.println("invalid cmd");
+      break;
+  }
 }
 
 void getHTMLcontents(timeData_t& data, enum DataContent dContent) {
