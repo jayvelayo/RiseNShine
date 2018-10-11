@@ -7,23 +7,25 @@
 
 bool MSP430MsgAPI::recvPacket(cmdType &cmd, int* dataArray) {
 	char tempBuffer[7];
-	bool packetComplete = false;
 
 	volatile char incByte;
-	while(!packetComplete) {
-		incByte = serial.readChar();
-		while(incByte != 0xff) {
-			incByte = serial.readChar(); 
-		}
+	incByte = serial.readChar();
 
-		cmd = static_cast<cmdType>(serial.readChar());
-
-		for(int i = 0; i < 7 && incByte!=0xff; i++) {
-			incByte = serial.readChar();
-			tempBuffer[i] = incByte;
-			if (i == 4) packetComplete = true;
-		}
+	//block until start byte if found
+	while(incByte != 0xff) {
+		incByte = serial.readChar(); 
 	}
+
+	//forces an int to be one of enum variables. if out of range, it'll be an int value that's
+	//not within range of enum
+	cmd = static_cast<cmdType>(serial.readChar());
+
+	for(int i = 0; i < 7 && incByte!=0xff; i++) {
+		incByte = serial.readChar();
+		tempBuffer[i] = incByte;
+		if (i == 4) packetComplete = true;
+	}
+	
 
 	dataArray[0] = conv8bits_to_16bit(tempBuffer, 0);
 	dataArray[1] = conv8bits_to_16bit(tempBuffer, 2);
@@ -41,11 +43,11 @@ void MSP430MsgAPI::sendPacket(cmdType cmd, const unsigned int& data0, const unsi
 	txBuffer[0] = 0xff;
 	txBuffer[1] = cmd;
 	conv16bit_to_8bits(data0, txBuffer, 2);
-	conv16bit_to_8bits(data0, txBuffer, 4);
-	conv16bit_to_8bits(data0, txBuffer, 6);
+	conv16bit_to_8bits(data1, txBuffer, 4);
+	conv16bit_to_8bits(data2, txBuffer, 6);
 	txBuffer[8] = (data0+data1+data2) & 0xff;
 
-	for(int i = PACKET_SIZE; i > 0; i--) {
+	for(int i = 0; i < PACKET_SIZE; i++) {
 		serial.printChar(txBuffer[i]);
 	}
 }
