@@ -1,6 +1,6 @@
 # Rise N' Shine
 
-A personal project that uses MSP430G2553 and ESP8266 (ESP-01 module). A taste of applying IoT concepts.
+A personal project that uses MSP430G2553 and ESP8266 (ESP-01 module). This project showcases my skill in real-time system design and firmware design. A write up of the project can be found [here](https://jayveevelayo.com/project/2018/11/02/risenshine)
 
 ## Status
 
