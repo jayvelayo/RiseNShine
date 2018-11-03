@@ -8,7 +8,7 @@
 
 #define PACKET_SIZE 9
 
-typedef enum _packet_index {
+enum class pktIndex{
 	startbyte,
 	cmdbyte,
 	databyte0_MSB,
@@ -18,13 +18,13 @@ typedef enum _packet_index {
 	databyte2_MSB,
 	databyte2_LSB,
 	chkbyte
-} pktIndex;
+};
 
-typedef enum _cmd_list {
+enum class cmdType {
 	getSunsetTime = 'a',
 	getSunriseTime = 'b',
 	getCurrentTime = 'c'
-} cmdType;
+};
 
 class MessageAPI {
 public:

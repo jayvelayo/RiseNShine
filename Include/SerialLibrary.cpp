@@ -61,9 +61,9 @@ void SerialPort::begin(long baudrate) {
 	}
 
 	UCA0CTL1 |= UCSSEL_2 + UCSWRST;                     // SMCLK
-    UCA0BR0 = baud_settings[index].UCBRx;                            // 1MHz 9600
-    UCA0BR1 = 0;                              // 1MHz 9600
-    UCA0MCTL = baud_settings[index].UCBRFx;                        // Modulation UCBRSx = 1
+    UCA0BR0 = (baud_settings[index].UCBRx & 0xff);                            // 1MHz 9600
+    UCA0BR1 = (baud_settings[index].UCBRx >> 8) & 0xff; ;                              // 1MHz 9600
+    UCA0MCTL = baud_settings[index].UCBRSx;                        // Modulation UCBRSx = 1
     P1DIR |= BIT1+BIT2;
     P1SEL |= BIT1 + BIT2 ;                     // P1.1 = RXD, P1.2=TXD
     P1SEL2 |= BIT1 + BIT2 ;                    // P1.1 = RXD, P1.2=TXD
@@ -72,7 +72,7 @@ void SerialPort::begin(long baudrate) {
 }
 
 void SerialPort::printChar(char c) {
-	while (!(IFG2&UCA0TXIFG));
+	while (!(IFG2&IFG2&UCA0TXIFG));
     UCA0TXBUF = c;
 }
 
@@ -86,6 +86,10 @@ void SerialPort::printLine(std::string &str) {
 
 char SerialPort::readChar() {
 	return circBuffer.tryDequeue();
+}
+
+bool SerialPort::isAvailable() {
+	return (circBuffer.bufferSize() != 0);
 }
 
 std::string SerialPort::readLine(){

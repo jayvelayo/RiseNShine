@@ -16,13 +16,14 @@
 typedef struct _baud_set {
 	long baud;
 	unsigned short UCBRx;
-	unsigned short UCBRFx;
+	unsigned short UCBRSx;
 } baud_set;
 
 static const baud_set baud_settings[] = {
-	//baud, UCBRx, 	UCBRFx
-	{9600,	104, 2},
-	{19200, 52, 2},
+	//baud, UCBRx, 	UCBRSx
+	//{9600,	104, 2},
+	{9600, 1250, 0}, //temp. for 12MHz
+	{19200, 52, 0},
 	{38400, 26, 0},
 	{56000, 17, 14},
 	{115200, 8, 12},
@@ -56,6 +57,7 @@ public:
 	void printChar(char c);
 	void printLine(std::string &str);
 	char readChar();
+	bool isAvailable();
 	std::string readLine();
 
 };
