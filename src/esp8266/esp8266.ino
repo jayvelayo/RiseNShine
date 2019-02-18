@@ -3,8 +3,8 @@
 #include <ArduinoJson.h>
 #include "ESP8266MessageInterface.h"
  
-const char* ssid = "TP-LINK_5FA9";
-const char* password = "janissa01";
+const char* ssid = "";
+const char* password = "";
 
 const char* SSHTMLSOURCE = "http://api.sunrise-sunset.org/json?lat=49.2827&lng=-123.1207&formatted=0";
 const char* CURRTIMESOURCE = "http://worldclockapi.com/api/json/utc/now";
